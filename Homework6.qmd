@@ -1,0 +1,194 @@
+# Homework 6 - Savannah Harrison
+
+# Task 1: Conceptual Questions
+
+1.  What is the purpose of the lapply() function? What is the equivalent purrr function?
+
+    **The lapply() function is used to apply a function to all elements of a list and it returns a list object of the same length. The equivalent purrr function is purrr::map().**
+
+2.  Suppose we have a list called my_list. Each element of the list is a numeric data frame (all columns are numeric). We want use lapply() to run the code cor(numeric_matrix, method = "kendall") on each element of the list. Write code to do this below! (I’m really trying to ask you how you specify method = "kendall" when calling lapply())
+
+**lapply(my_list, function(df) cor(df, method = "kendall"))**
+
+3.  What are two advantages of using purrr functions instead of the BaseR apply family?
+**Using the purrr functions allows for greater consistency between functions and they have lots of helper functions that are useful.**
+
+4.  What is a side-effect function?
+**A side-effect function (ex: print(), write_csv()) doesn't change the data, it just tries to produce something.**
+
+5.  Why can you name a variable sd in a function and not cause any issues with the sd function?
+**When a function is called, there is a temperary function environment. Variables inside of functions do not exist outside of the function, which is why if you name a variable sd it will not translate outside of the function. It will go back to its built-in meaning.**
+
+# Task 2: Writing R Functions
+Writing RMSE function.
+```{r}
+getRMSE <- function(responses, predictions, ...) {
+  if (length(responses) != length(predictions)) {
+    stop("Responses and predictions must have same length.")
+  }
+  squared_diffs <- (responses-predictions)^2
+  
+  mean_squared_error <- mean(squared_diffs, ...)
+  
+  RMSE <- sqrt(mean_squared_error)
+  
+  return(RMSE)
+  }
+```
+Creating response values and predictions to test.
+```{r}
+set.seed(10)
+n <- 100
+x <- runif(n)
+resp <- 3 + 10 * x + rnorm(n)
+pred <- predict(lm(resp ~ x), data.frame(x))
+```
+Testing RMSE function with created data.
+```{r}
+RMSE1 <- getRMSE(resp, pred)
+print(RMSE1)
+```
+Replacing two response values with NA.
+```{r}
+resp_with_na <- resp
+resp_with_na[1] <- NA_real_
+resp_with_na[2] <- NA_real_
+```
+Testing without specifting behavior for NA.
+```{r}
+RSME2 <- getRMSE(resp_with_na, pred)
+print(RSME2)
+```
+Testing with specifting behavior for NA.
+```{r}
+RSME3 <- getRMSE(resp_with_na, pred, na.rm = TRUE)
+print(RSME3)
+```
+Creating MAE function.
+```{r}
+getMAE <- function(responses, predictions, ...) {
+   if (length(responses) != length(predictions)) {
+    stop("Responses and predictions must have same length.")
+  }
+  diffs <- abs(responses-predictions)
+  
+  MAE <- mean(diffs,...)
+  
+  return(MAE)
+}
+```
+Creating response values and predictions to test MAE function.
+```{r}
+set.seed(10)
+n <- 100
+x <- runif(n)
+resp2 <- 3 + 10 * x + rnorm(n)
+pred2 <- predict(lm(resp ~ x), data.frame(x))
+```
+Testing MAE function using the data.
+```{r}
+MAE1 <- getMAE(resp2, pred2)
+print(MAE1)
+```
+Replacing two response values with missing values.
+```{r}
+resp_with_na2 <- resp2
+resp_with_na2[1] <- NA_real_
+resp_with_na2[2] <- NA_real_
+```
+Testing without specifting behavior for NA.
+```{r}
+MAE2 <- getMAE(resp_with_na2, pred2)
+print(MAE2)
+```
+Testing with specifting behavior for NA.
+```{r}
+MAE3 <- getMAE(resp_with_na2, pred2, na.rm = TRUE)
+print(MAE3)
+```
+Creating metrics wrapper function to get either or both metrics.
+```{r}
+getMetrics <- function(responses, predictions, metrics = c("RMSE", "MAE"),...) {
+  if(!is.vector(responses) || !is.vector(predictions) ||
+     !is.atomic(responses) || !is.atomic(predictions) ||
+     !is.numeric(responses) || !is.numeric(predictions)) {
+       stop("Responses and predictions must be numeric atomic vectors.")
+     }
+     
+results <- list()
+     
+  if("RMSE" %in% metrics) {
+    results$RMSE <- getRMSE(responses, predictions, ...)
+  }
+  if("MAE" %in% metrics) {
+    results$MAE <- getMAE(responses, predictions, ...)
+  }
+
+return(results)
+}
+```
+Creating response values and predictions to test.
+```{r}
+set.seed(10)
+n <- 100
+x <- runif(n)
+resp3 <- 3 + 10 * x + rnorm(n)
+pred3 <- predict(lm(resp ~ x), data.frame(x))
+```
+Testing the function with "RMSE".
+```{r}
+Metrics1 <- getMetrics(resp3, pred3, "RMSE")
+print(Metrics1)
+```
+Testing the function with "MAE".
+```{r}
+Metrics2 <- getMetrics(resp3, pred3, "MAE")
+print(Metrics2)
+```
+Specifying both metrics.
+```{r}
+Metrics3 <- getMetrics(resp3, pred3, )
+print(Metrics3)
+```
+Replacing two repsonse values with missing values.
+```{r}
+resp_with_na3 <- resp3
+resp_with_na3[1] <- NA_real_
+resp_with_na3[2] <- NA_real_
+```
+Testing the function with the missing values.
+```{r}
+Metrics4 <- getMetrics(resp_with_na3, pred3, "RMSE")
+print(Metrics4)
+```
+```{r}
+Metrics5 <- getMetrics(resp_with_na3, pred3, "RMSE", na.rm = TRUE)
+print(Metrics5)
+```
+
+```{r}
+Metrics6 <- getMetrics(resp_with_na3, pred3, "MAE")
+print(Metrics6)
+```
+
+```{r}
+Metrics7 <- getMetrics(resp_with_na3, pred3, "MAE", na.rm = TRUE)
+print(Metrics7)
+```
+
+```{r}
+Metrics8 <- getMetrics(resp_with_na3, pred3,)
+print(Metrics8)
+```
+
+```{r}
+Metrics9 <- getMetrics(resp_with_na3, pred3, na.rm = TRUE)
+print(Metrics9)
+```
+Testing the function by passing in incorrect data.
+```{r}
+Metrics5 <- getMetrics(iris)
+```
+
+
+

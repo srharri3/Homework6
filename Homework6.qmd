@@ -189,6 +189,59 @@ Testing the function by passing in incorrect data.
 ```{r}
 Metrics5 <- getMetrics(iris)
 ```
+# Task 3: Querying an API and a Tidy-Style Function
+
+```{r}
+install.packages("jsonlite")
+```
+
+```{r}
+library(httr)
+library(dplyr)
+library(purrr)
+library(jsonlite)
+```
 
 
+```{r}
+teslaurl <- "https://newsapi.org/v2/everything?q=tesla&from=2024-09-15&sortBy=publishedAt&apiKey=c36df82613354f00b6331308d41865d6"
+teslareturn <- httr::GET(teslaurl)
+parsedtesla <- fromJSON(rawToChar(teslareturn$content))
+teslastats <- as_tibble(parsedtesla)
+articles <- pluck(parsedtesla$articles$content)
+```
+
+
+```{r}
+articles
+```
+
+```{r}
+getNews <- function(subject, time_period, API_key) {
+  url <- "https://newsapi.org/v2/everything"
+  response <- httr::GET(url, query = list( 
+    q = subject,
+    from = time_period,
+    apiKey = API_key))
+  
+   if (status_code(response) == 200) {
+     news_data <- content(response, as = "parsed", type = "application/json")
+     
+     return(news_data$articles)
+  } else {
+    return(paste("Error:", status_code(response)))
+  }
+}
+```
+
+```{r}
+tesla <- getNews("tesla", "2024-09-15", "c36df82613354f00b6331308d41865d")
+
+if (!is.character(tesla)) {
+  titles <- sapply(tesla, function(x) x$title)
+  print(titles)
+} else {
+  print(tesla)
+}
+```
 

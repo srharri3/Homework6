@@ -227,7 +227,9 @@ getNews <- function(subject, time_period, API_key) {
    if (status_code(response) == 200) {
      news_data <- content(response, as = "parsed", type = "application/json")
      
-     return(news_data$articles)
+    articles <- news_data$articles
+    articles_df <- as.data.frame(articles)
+     return(articles_df)
   } else {
     return(paste("Error:", status_code(response)))
   }
@@ -235,13 +237,10 @@ getNews <- function(subject, time_period, API_key) {
 ```
 
 ```{r}
-tesla <- getNews("tesla", "2024-09-15", "c36df82613354f00b6331308d41865d")
+API_key <- "c36df82613354f00b6331308d41865d"
+```
 
-if (!is.character(tesla)) {
-  titles <- sapply(tesla, function(x) x$title)
-  print(titles)
-} else {
-  print(tesla)
-}
+```{r}
+result <- getNews("Tesla", "2024-09-15", API_key)
 ```
 

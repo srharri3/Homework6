@@ -187,13 +187,9 @@ print(Metrics9)
 ```
 Testing the function by passing in incorrect data.
 ```{r}
-Metrics5 <- getMetrics(iris)
+#Metrics5 <- getMetrics(iris)
 ```
 # Task 3: Querying an API and a Tidy-Style Function
-
-```{r}
-install.packages("jsonlite")
-```
 
 ```{r}
 library(httr)
